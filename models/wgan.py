@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
+import matplotlib.pyplot as plt
 from .generator import Generator
 from .discriminator import Discriminator
 
@@ -15,7 +16,7 @@ class WGAN(nn.Module):
     def forward(self, z):
         return self.gen(z)
 
-    def discriminator_loss(self, y_hat, y):
+    def discriminator_loss(self, y, y_hat):
         return -(torch.mean(y) - torch.mean(y_hat))
 
     def generator_loss(self, y_hat):
@@ -24,6 +25,14 @@ class WGAN(nn.Module):
     def optimizers(self, lr):
         self.opt_G = torch.optim.Adam(self.gen.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
         self.opt_D = torch.optim.Adam(self.dis.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
+
+    def plot(self, histG, histD):
+      plt.figure(figsize = (12, 6))
+      plt.plot(histG, color = 'blue', label = 'Generator Loss')
+      plt.plot(histD, color = 'black', label = 'Discriminator Loss')
+      plt.title('WGAN-GP Loss')
+      plt.xlabel('Days')
+      plt.legend(loc = 'upper right')
 
     def training_step(self, epochs, train_dataloader, real_tick):
         self.gen.train()
@@ -59,8 +68,14 @@ class WGAN(nn.Module):
             hist_G[epoch] = sum(loss_G)
             hist_D[epoch] = sum(loss_D)
             print(f'[{epoch + 1}/{epochs}] LossD: {sum(loss_D):.5f} LossG:{sum(loss_G):.5f}')
+        self.plot(hist_G, hist_D)
 
-    def predict(self, x, y):
+    def generator_samples(self, x):
         self.gen.eval()
         pred_y = self.gen(x.to(self.device))
-        return pred_y.cpu().detach().numpy()
+        return pred_y.cpu()
+
+    def score_sample(self, x):
+        self.dis.eval()
+        score = self.dis(x.to(self.device))
+        return score.cpu()
