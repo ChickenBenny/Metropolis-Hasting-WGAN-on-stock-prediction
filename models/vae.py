@@ -37,7 +37,7 @@ class VAE(nn.Module):
     def optimizers(self, lr):
         self.opt = torch.optim.Adam(self.vae.parameters(), lr = lr)
 
-    def training_step(self, epochs, train_dataloader, real_tick):
+    def training_step(self, epochs, train_dataloader):
         self.vae.train()
         hist = np.zeros(epochs)
         for epoch in range(epochs):
