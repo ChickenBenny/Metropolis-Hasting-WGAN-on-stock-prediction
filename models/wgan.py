@@ -26,14 +26,6 @@ class WGAN(nn.Module):
         self.opt_G = torch.optim.Adam(self.gen.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
         self.opt_D = torch.optim.Adam(self.dis.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
 
-    def plot(self, histG, histD):
-      plt.figure(figsize = (12, 6))
-      plt.plot(histG, color = 'blue', label = 'Generator Loss')
-      plt.plot(histD, color = 'black', label = 'Discriminator Loss')
-      plt.title('WGAN-GP Loss')
-      plt.xlabel('Days')
-      plt.legend(loc = 'upper right')
-
     def training_step(self, epochs, train_dataloader, real_tick):
         self.gen.train()
         self.dis.train()
@@ -79,3 +71,11 @@ class WGAN(nn.Module):
         self.dis.eval()
         score = self.dis(x.to(self.device))
         return score.cpu()
+
+    def plot(self, histG, histD):
+        plt.figure(figsize = (12, 6))
+        plt.plot(histG, color = 'blue', label = 'Generator Loss')
+        plt.plot(histD, color = 'black', label = 'Discriminator Loss')
+        plt.title('WGAN-GP Loss')
+        plt.xlabel('Days')
+        plt.legend(loc = 'upper right')

@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader, TensorDataset
 from sklearn.isotonic import IsotonicRegression
 from .wgan import WGAN
 
@@ -50,6 +51,46 @@ class MHGAN(WGAN):
                 y_samples.append(y_sample.numpy())
         
         return np.array(x_samples).reshape(-1, train_x.shape[1], train_x.shape[2]), np.array(y_samples).reshape(-1, train_y.shape[1], train_y.shape[2])
+
+    def mh_enhance(self, epochs, batch_size, train_x, train_y, real_tick):
+        hist_G = np.zeros(epochs)
+        hist_D = np.zeros(epochs)        
+        for epoch in range(epochs):
+            loss_G = []
+            loss_D = []
+
+            mh_sample_cal = self.calibrate_discriminator(train_x, train_y)
+            mh_sample_x, mh_sample_y = self.mh_sample(train_x, train_y, mh_sample_cal)
+            mh_dataset = DataLoader(TensorDataset(torch.from_numpy(mh_sample_x).float(), torch.from_numpy(mh_sample_y).float()), batch_size = batch_size, shuffle = False)
+
+            self.dis.train()
+            self.gen.train()
+            for x, y in mh_dataset:
+                x = x.to(self.device)
+                y = y.to(self.device)
+                fake_data = self.gen(x)
+                fake_data = torch.cat([y[:, :real_tick, :], fake_data.reshape(-1, 1, 1)], axis = 1)
+
+                cirtic_real = self.dis(y)
+                critic_fake = self.dis(fake_data)
+
+                loss_d = self.discriminator_loss(cirtic_real, critic_fake)
+                self.dis.zero_grad()
+                loss_d.backward(retain_graph = True)
+                self.opt_D.step()
+
+                output_fake = self.dis(fake_data)
+                loss_g = self.generator_loss(output_fake)
+                self.gen.zero_grad()
+                loss_g.backward()
+                self.opt_G.step()
+
+                loss_G.append(loss_g.item())
+                loss_D.append(loss_d.item())
+            hist_G[epoch] = sum(loss_G)
+            hist_D[epoch] = sum(loss_D)
+            print(f'[{epoch + 1}/{epochs}] LossD: {sum(loss_D):.5f} LossG:{sum(loss_G):.5f}')
+        self.plot(hist_G, hist_D)                
 
     def plot_prob_original(self, x, y):
         plt.subplots(1, 2)
