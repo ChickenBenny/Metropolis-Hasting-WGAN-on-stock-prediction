@@ -1,3 +1,4 @@
+from pickle import FALSE
 import torch
 import torch.nn as nn
 import numpy as np
@@ -26,7 +27,7 @@ class WGAN(nn.Module):
         self.opt_G = torch.optim.Adam(self.gen.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
         self.opt_D = torch.optim.Adam(self.dis.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
 
-    def training_step(self, epochs, train_dataloader, real_tick):
+    def training_step(self, epochs, train_dataloader, real_tick, plot_loss = FALSE):
         self.gen.train()
         self.dis.train()
         hist_G = np.zeros(epochs)
@@ -60,7 +61,9 @@ class WGAN(nn.Module):
             hist_G[epoch] = sum(loss_G)
             hist_D[epoch] = sum(loss_D)
             print(f'[{epoch + 1}/{epochs}] LossD: {sum(loss_D):.5f} LossG:{sum(loss_G):.5f}')
-        self.plot(hist_G, hist_D)
+        if plot_loss:
+            self.plot(hist_G, hist_D)
+        return hist_G, hist_D
 
     def generator_samples(self, x):
         self.gen.eval()

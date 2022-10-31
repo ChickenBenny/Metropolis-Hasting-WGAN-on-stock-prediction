@@ -1,3 +1,4 @@
+from pickle import FALSE
 import torch
 import random
 import torch.nn as nn
@@ -52,7 +53,7 @@ class MHGAN(WGAN):
         
         return np.array(x_samples).reshape(-1, train_x.shape[1], train_x.shape[2]), np.array(y_samples).reshape(-1, train_y.shape[1], train_y.shape[2])
 
-    def mh_enhance(self, epochs, batch_size, train_x, train_y, real_tick):
+    def mh_enhance(self, epochs, batch_size, train_x, train_y, real_tick, plot_loss = FALSE):
         hist_G = np.zeros(epochs)
         hist_D = np.zeros(epochs)        
         for epoch in range(epochs):
@@ -90,7 +91,34 @@ class MHGAN(WGAN):
             hist_G[epoch] = sum(loss_G)
             hist_D[epoch] = sum(loss_D)
             print(f'[{epoch + 1}/{epochs}] LossD: {sum(loss_D):.5f} LossG:{sum(loss_G):.5f}')
-        self.plot(hist_G, hist_D)                
+        if plot_loss:
+            self.plot(hist_G, hist_D) 
+        return hist_G, hist_D
+
+
+    def mh_training(self, epochs_wgan, epochs_mhgan, train_dataloader, batch_size, train_x, train_y, real_tick):         
+        hist_G = np.zeros(epochs_wgan + epochs_mhgan)
+        hist_D = np.zeros(epochs_wgan + epochs_mhgan)
+
+        print("WGAN init training")
+        wgan_loss_G, wgan_loss_D = self.training_step(epochs_wgan, train_dataloader, real_tick, False)
+        
+        for i in range(epochs_wgan):
+            hist_G[i] = wgan_loss_G[i]
+            hist_D[i] = wgan_loss_D[i]
+
+        print("Use metropolis-Hasting enhance training")
+        mhgan_loss_G, mhgan_loss_D = self.mh_enhance(epochs_mhgan, batch_size, train_x, train_y, real_tick, FALSE)
+
+        for i in range(epochs_wgan, epochs_wgan + epochs_mhgan):
+            hist_G[i] = mhgan_loss_G[i]
+            hist_D[i] = mhgan_loss_D[i]
+
+        print("plot the training result")
+        print(f'Train in {epochs_wgan} epochs and enhance in {epochs_mhgan} epochs')
+        self.plot(hist_G, hist_D)        
+
+
 
     def plot_prob_original(self, x, y):
         plt.subplots(1, 2)
