@@ -53,7 +53,7 @@ class MHGAN(WGAN):
         
         return np.array(x_samples).reshape(-1, train_x.shape[1], train_x.shape[2]), np.array(y_samples).reshape(-1, train_y.shape[1], train_y.shape[2])
 
-    def mh_enhance(self, epochs, batch_size, train_x, train_y, real_tick, plot_loss = FALSE):
+    def mh_enhance(self, epochs, batch_size, train_x, train_y, real_tick, plot_loss = False):
         hist_G = np.zeros(epochs)
         hist_D = np.zeros(epochs)        
         for epoch in range(epochs):
@@ -108,11 +108,11 @@ class MHGAN(WGAN):
             hist_D[i] = wgan_loss_D[i]
 
         print("Use metropolis-Hasting enhance training")
-        mhgan_loss_G, mhgan_loss_D = self.mh_enhance(epochs_mhgan, batch_size, train_x, train_y, real_tick, FALSE)
+        mhgan_loss_G, mhgan_loss_D = self.mh_enhance(epochs_mhgan, batch_size, train_x, train_y, real_tick, False)
 
         for i in range(epochs_wgan, epochs_wgan + epochs_mhgan):
-            hist_G[i] = mhgan_loss_G[i]
-            hist_D[i] = mhgan_loss_D[i]
+            hist_G[i] = mhgan_loss_G[i - epochs_wgan]
+            hist_D[i] = mhgan_loss_D[i - epochs_wgan]]
 
         print("plot the training result")
         print(f'Train in {epochs_wgan} epochs and enhance in {epochs_mhgan} epochs')
