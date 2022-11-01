@@ -111,8 +111,8 @@ class MHGAN(WGAN):
         mhgan_loss_G, mhgan_loss_D = self.mh_enhance(epochs_mhgan, batch_size, train_x, train_y, real_tick, False)
 
         for i in range(epochs_wgan, epochs_wgan + epochs_mhgan):
-            hist_G[i] = mhgan_loss_G[i - epochs_wgan]
-            hist_D[i] = mhgan_loss_D[i - epochs_wgan]]
+            hist_G[i] = mhgan_loss_G[i-epochs_wgan]
+            hist_D[i] = mhgan_loss_D[i-epochs_wgan]
 
         print("plot the training result")
         print(f'Train in {epochs_wgan} epochs and enhance in {epochs_mhgan} epochs')
