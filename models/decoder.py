@@ -6,23 +6,21 @@ class Decoder(nn.Module):
         super().__init__()
 
         modules = []
-        self.decoder_input = nn.Linear(latent_dim, config[-1])
+        prev_dim = latent_dim
 
-        for i in range(len(config) - 1, 1, -1):
+        for dim in config:
             modules.append(
                 nn.Sequential(
-                    nn.Linear(config[i], config[i - 1]),
+                    nn.Linear(prev_dim, dim),
                     nn.ReLU()
                 )
-            )       
-        modules.append(
-            nn.Sequential(
-                nn.Linear(config[1], config[0]),
-                nn.Sigmoid()
             )
-        ) 
+            prev_dim = dim
+
+        self.decoder_input = nn.Linear(latent_dim, config[-1])
         self.decoder = nn.Sequential(*modules)
 
     def forward(self, x):
+        x = self.decoder_input(x)
         decoded = self.decoder(x)
         return decoded
