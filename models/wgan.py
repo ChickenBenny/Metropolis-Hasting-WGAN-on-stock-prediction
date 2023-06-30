@@ -1,4 +1,3 @@
-from pickle import FALSE
 import torch
 import torch.nn as nn
 import numpy as np
@@ -6,13 +5,14 @@ import matplotlib.pyplot as plt
 from .generator import Generator
 from .discriminator import Discriminator
 
+
 class WGAN(nn.Module):
-    def __init__(self, input_size, use_cuda):
+    def __init__(self, input_size, window_size, use_cuda = 1):
         super().__init__()
         self.input_size = input_size
         self.device = torch.device("cuda" if (torch.cuda.is_available() & use_cuda) else "cpu")
         self.gen = Generator(self.input_size, use_cuda)
-        self.dis = Discriminator()
+        self.dis = Discriminator(window_size)
 
     def forward(self, z):
         return self.gen(z)
@@ -27,7 +27,7 @@ class WGAN(nn.Module):
         self.opt_G = torch.optim.Adam(self.gen.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
         self.opt_D = torch.optim.Adam(self.dis.parameters(), lr = lr, betas = (0.0, 0.9), weight_decay = 1e-3)
 
-    def training_step(self, epochs, train_dataloader, real_tick, plot_loss = FALSE):
+    def training_step(self, epochs, train_dataloader, window_size, plot_loss=False):
         self.gen.train()
         self.dis.train()
         hist_G = np.zeros(epochs)
@@ -40,7 +40,7 @@ class WGAN(nn.Module):
                 y = y.to(self.device)
 
                 fake_data = self.gen(x)
-                fake_data = torch.cat([y[:, :real_tick, :], fake_data.reshape(-1, 1, 1)], axis = 1)
+                fake_data = torch.cat([y[:, :window_size, :], fake_data.reshape(-1, 1, 1)], axis = 1)
 
                 cirtic_real = self.dis(y)
                 critic_fake = self.dis(fake_data)
@@ -65,20 +65,10 @@ class WGAN(nn.Module):
             self.plot(hist_G, hist_D)
         return hist_G, hist_D
 
-    def generator_samples(self, x):
-        self.gen.eval()
-        pred_y = self.gen(x.to(self.device))
-        return pred_y.cpu()
-
-    def score_sample(self, x):
-        self.dis.eval()
-        score = self.dis(x.to(self.device))
-        return score.cpu()
-
-    def plot(self, histG, histD):
-        plt.figure(figsize = (12, 6))
-        plt.plot(histG, color = 'blue', label = 'Generator Loss')
-        plt.plot(histD, color = 'black', label = 'Discriminator Loss')
+    def plot(self, hist_G, hist_D):
+        plt.figure(figsize=(12, 6))
+        plt.plot(hist_G, color='blue', label='Generator Loss')
+        plt.plot(hist_D, color='orange', label='Discriminator Loss')
         plt.title('WGAN-GP Loss')
-        plt.xlabel('Days')
-        plt.legend(loc = 'upper right')
+        plt.xlabel('Epochs')
+        plt.legend(loc='upper right')
