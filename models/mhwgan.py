@@ -3,7 +3,6 @@ import torch
 import random
 import torch.nn as nn
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.isotonic import IsotonicRegression
