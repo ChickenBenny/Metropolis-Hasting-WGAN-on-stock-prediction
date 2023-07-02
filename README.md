@@ -29,6 +29,7 @@ $ pip install -r requirements.txt
 2. Wasserstein GAN : https://arxiv.org/abs/1701.07875
 3. Repo from borisbanushev :
 https://github.com/borisbanushev/stockpredictionai
+4. Stock price prediction using Generative Adversarial Networks : https://thescipub.com/abstract/jcssp.2021.188.196
 
 ## 🌟 Idea
 Incorporate the ideas from Boris Banushev's repository, as it focuses on implementing GAN-based models for stock prediction. These models leverage the power of GANs' ability to generate realistic and diverse samples, making them suitable for handling stock market dynamics, especially during high-volatility situations.
@@ -44,6 +45,18 @@ Incorporate the ideas from Boris Banushev's repository, as it focuses on impleme
     | RMSE | MAE |
     | -------- | -------- | 
     | 2.077     | 1.673     | 
+
+# 👀 Pros and Cons
+* Pros
+    1. Improve the stability of WGAN model.
+    2. Improve the adaptability of the model.
+    3. Might capture comple or highly volatile distributions.
+* Cons
+    1. Computational complexity and sesitivity to hyperparameters.
+    2. Data limitations and highly dependency on data quailty.
+
+# 🙈 Notice
+The model exhibits instability and high volatility. Therefore, if you are interested in making stock predictions using GAN-based models, it is recommended to fine-tune the hyperparameters, explore various data preprocessing techniques, or consider alternative models.
 
 ## License
 
